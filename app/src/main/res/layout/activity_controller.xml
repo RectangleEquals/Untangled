@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/servicesLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/urlEditText"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginRight="3dp"
+            android:hint="Enter Server URL"
+            android:inputType="textUri" />
+
+        <Button
+            android:id="@+id/startServiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="3dp"
+            android:enabled="false"
+            android:insetTop="0dp"
+            android:insetBottom="3dp"
+            android:text="Start Service" />
+
+        <Button
+            android:id="@+id/stopServiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="3dp"
+            android:enabled="false"
+            android:insetTop="0dp"
+            android:insetBottom="3dp"
+            android:text="Stop Service" />
+
+        <Button
+            android:id="@+id/findControllersButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="3dp"
+            android:enabled="false"
+            android:insetTop="0dp"
+            android:insetBottom="3dp"
+            android:text="Find Wireless Controller" />
+
+    </LinearLayout>
+
+</RelativeLayout>

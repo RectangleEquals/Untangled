@@ -26,7 +26,9 @@ class CustomOverlayLayout @JvmOverloads constructor(
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD) {
+        if (event.source and InputDevice.SOURCE_GAMEPAD === InputDevice.SOURCE_GAMEPAD
+            || (event.source and InputDevice.SOURCE_JOYSTICK === InputDevice.SOURCE_JOYSTICK)
+        ) {
             // Process the gamepad event here
             for (listener in gamepadEventListeners) {
                 if (listener(event)) {

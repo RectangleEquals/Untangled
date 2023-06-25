@@ -7,10 +7,19 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
+import android.view.*
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.net.URI
+
+
+private const val TAG = "BackgroundService"
 
 // Notification constants
 private const val NOTIFICATION_ID = 1
@@ -20,6 +29,8 @@ private const val CHANNEL_NAME = "Background Service"
 class BackgroundService : Service() {
     private var controllerActivity: ControllerActivity? = null
     private var tcpClient: TcpClient? = null
+    private lateinit var windowManager: WindowManager
+    private lateinit var overlayView: CustomOverlayLayout
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -28,18 +39,42 @@ class BackgroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         SharedData.backgroundService = this
+        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_layout, null) as CustomOverlayLayout
+        overlayView.addGamepadEventListener{ event -> handleGamepadEvent(event) }
+
+        overlayView.setOnTouchListener(null)
+
+        overlayView.visibility = INVISIBLE
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if(intent?.action == ACTION_STOP_SERVICE) {
-            stopSelf()
+            doStopService()
             return START_NOT_STICKY
         }
 
         // Retrieve the tcpClient from SharedData
         controllerActivity = SharedData.activityContext
-        tcpClient = controllerActivity?.tcpClient
-        controllerActivity?.connectToServer()
+        connectToServer()
+
+        val layoutType: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+
+        val layoutFlags: Int = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+
+        val layoutParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            layoutType,
+            layoutFlags,
+            PixelFormat.TRANSLUCENT
+        )
+        // Add the overlay view to the window manager
+        windowManager.addView(overlayView, layoutParams)
 
         createNotificationChannel()
 
@@ -61,6 +96,7 @@ class BackgroundService : Service() {
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
+        overlayView.visibility = VISIBLE
 
         return START_STICKY
     }
@@ -86,10 +122,35 @@ class BackgroundService : Service() {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
-    override fun onDestroy() {
+    private fun connectToServer() {
+        val uri = URI(controllerActivity?.urlText)
+        tcpClient = TcpClient(controllerActivity, uri.host, uri.port)
+        tcpClient?.connect()
+    }
+
+    private fun handleGamepadEvent(event: MotionEvent): Boolean {
+        val controllerState = ControllerState(event)
+        val serializedState = SerializedControllerState(controllerState).serializedData
+        tcpClient?.sendData(serializedState)
+        Log.v(TAG, "[GAMEPAD]: $event")
+        return true
+    }
+
+    private fun disconnectFromServer() {
+        tcpClient?.disconnect()
+    }
+
+    private fun doStopService() {
+        overlayView.visibility = INVISIBLE
+        overlayView.removeGamepadEventListener { event -> handleGamepadEvent(event) }
+        stopSelf()
         stopForeground(STOP_FOREGROUND_REMOVE)
-        controllerActivity?.disconnectFromServer()
+        disconnectFromServer()
         sendServiceStoppedBroadcast()
+    }
+
+    override fun onDestroy() {
+        doStopService()
         super.onDestroy()
     }
 

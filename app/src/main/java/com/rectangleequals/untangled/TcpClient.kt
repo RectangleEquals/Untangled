@@ -5,7 +5,7 @@ import java.io.OutputStream
 import java.net.Socket
 
 class TcpClient(
-    private val activity: ControllerActivity,
+    private val activity: ControllerActivity?,
     private val serverIp: String,
     private val serverPort: Int
 ) {
@@ -43,7 +43,7 @@ class TcpClient(
     private inner class ConnectTask : AsyncTask<Void, Void, Boolean>() {
         override fun doInBackground(vararg params: Void): Boolean {
             try {
-                activity.showToast("Connecting to server...")
+                activity?.showToast("Connecting to ${serverIp}...")
                 socket = Socket(serverIp, serverPort)
                 outputStream = socket?.getOutputStream()
                 return true
@@ -55,16 +55,16 @@ class TcpClient(
 
         override fun onPostExecute(result: Boolean) {
             if (result) {
-                activity.showToast("Connected to server")
+                activity?.showToast("Connected to server")
             } else {
-                activity.showToast("Failed to connect to server")
+                activity?.showToast("Failed to connect to server")
             }
         }
 
         override fun onCancelled() {
             closeSocket()
             outputStream = null
-            activity.showToast("Connection cancelled")
+            activity?.showToast("Connection cancelled")
         }
     }
 
@@ -82,7 +82,7 @@ class TcpClient(
 
         override fun onPostExecute(result: Boolean) {
             if (!result) {
-                activity.showToast("Failed to send data")
+                activity?.showToast("Failed to send data")
             }
         }
     }
@@ -94,7 +94,7 @@ class TcpClient(
 
         override fun onPostExecute(result: Unit) {
             outputStream = null
-            activity.showToast("Disconnected from server")
+            activity?.showToast("Disconnected from server")
         }
     }
 }

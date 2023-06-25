@@ -9,19 +9,21 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.InputDevice
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.net.URI
@@ -29,6 +31,7 @@ import java.net.URISyntaxException
 import java.util.*
 
 private const val TAG: String = "ControllerActivity"
+private const val overlayPermissionRequestCode = 100
 
 @SuppressLint("MissingPermission")
 class ControllerActivity : AppCompatActivity() {
@@ -40,6 +43,9 @@ class ControllerActivity : AppCompatActivity() {
     }
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter.isEnabled
+
+    val urlText: String
+        get() = urlEditText.text.toString()
 
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var urlEditText: EditText
@@ -53,8 +59,6 @@ class ControllerActivity : AppCompatActivity() {
     private var bluetoothGatt: BluetoothGatt? = null
     private var controller: BluetoothDevice? = null
     private var cachedUrl: String = ""
-
-    var tcpClient: TcpClient? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,15 +92,6 @@ class ControllerActivity : AppCompatActivity() {
         urlEditText = findViewById(R.id.urlEditText)
         urlEditText.setText(cachedUrl)
 
-        // Add listener to cache the URL value when it changes
-        urlEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                cachedUrl = urlEditText.text.toString()
-                // Store the cached URL value in SharedPreferences
-                sharedPreferences.edit().putString("cachedUrl", cachedUrl).apply()
-            }
-        }
-
         urlEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
                 // No implementation needed
@@ -104,7 +99,12 @@ class ControllerActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val url = s.toString().trim()
-                startServiceButton.isEnabled = isValidUrl(url)
+                if(isValidUrl(url)) {
+                    cachedUrl = urlEditText.text.toString()
+                    // Store the cached URL value in SharedPreferences
+                    sharedPreferences.edit().putString("cachedUrl", cachedUrl).apply()
+                    startServiceButton.isEnabled = isValidUrl(url)
+                }
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -113,6 +113,7 @@ class ControllerActivity : AppCompatActivity() {
         })
 
         startServiceButton = findViewById(R.id.startServiceButton)
+        startServiceButton.isEnabled = urlText?.let { isValidUrl(it) } == true
         stopServiceButton = findViewById(R.id.stopServiceButton)
         findControllersButton = findViewById(R.id.findControllersButton)
 
@@ -135,6 +136,40 @@ class ControllerActivity : AppCompatActivity() {
         connectToController()
     }
 
+    private fun requestOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            // Overlay permission not granted, show a dialog
+            val dialogBuilder = AlertDialog.Builder(this)
+                .setTitle("Overlay Permission Required")
+                .setMessage("This app requires overlay permission to function properly. Please grant the permission.")
+                .setPositiveButton("Grant Permission") { _, _ ->
+                    // Open the overlay permission settings
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                    startActivityForResult(intent, overlayPermissionRequestCode)
+                }
+                .setNegativeButton("Cancel") { _, _ ->
+                    // User clicked Cancel, handle the case if needed
+                }
+            dialogBuilder.create().show()
+        } else {
+            // Overlay permission already granted, proceed with the necessary action
+            startBackgroundService()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == overlayPermissionRequestCode) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
+                // Permission granted, restart the background service or perform the necessary action
+                startBackgroundService()
+            } else {
+                // Permission denied, show a message or handle the case accordingly
+                showToast("Overlay permission denied")
+            }
+        }
+    }
+
     private fun isValidUrl(url: String): Boolean {
         try {
             val uri = URI(url)
@@ -146,10 +181,12 @@ class ControllerActivity : AppCompatActivity() {
     }
 
     fun beginService() {
+        requestOverlayPermission()
+    }
+
+    private fun startBackgroundService() {
         val serviceIntent = Intent(this, BackgroundService::class.java)
-
         SharedData.activityContext = this
-
         startServiceButton.isEnabled = false
         stopServiceButton.isEnabled = true
         startService(serviceIntent)
@@ -162,27 +199,6 @@ class ControllerActivity : AppCompatActivity() {
         stopService(stopServiceIntent)
     }
 
-    fun connectToServer() {
-        val uri = URI(urlEditText.text.toString())
-        tcpClient = TcpClient(this, uri.host, uri.port)
-        tcpClient?.connect()
-    }
-
-    fun disconnectFromServer() {
-        tcpClient?.disconnect()
-    }
-
-    override fun dispatchGenericMotionEvent(ev: MotionEvent?): Boolean {
-        val controllerDeviceId = getGameControllerIds()[0]
-        if (controller != null && ev?.deviceId == controllerDeviceId) {
-            val serializedState = SerializedControllerState(ControllerState(ev)).serializedData
-            tcpClient?.sendData(serializedState) // Send gamepad inputs to remote server
-            return true
-        }
-
-        return super.dispatchGenericMotionEvent(ev)
-    }
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD) {
             return true // Don't let the OS handle gamepad inputs
@@ -192,12 +208,11 @@ class ControllerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         Log.v(TAG, "onDestroy")
-        tcpClient?.disconnect()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceStoppedReceiver)
         if(hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
             bluetoothGatt?.disconnect()
             bluetoothGatt?.close()
         }
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceStoppedReceiver)
         super.onDestroy()
     }
 
@@ -240,6 +255,8 @@ class ControllerActivity : AppCompatActivity() {
             showToast("Insufficient permissions")
         }
     }
+
+
 
     private fun hasPermission(permission: String): Boolean {
         return applicationContext.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

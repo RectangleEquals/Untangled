@@ -2,44 +2,51 @@ package com.rectangleequals.untangled
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.InputDevice
+import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.constraintlayout.widget.ConstraintLayout
-
-private const val TAG = "CustomOverlayLayout"
 
 class CustomOverlayLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+    private val gamepadEventListeners: MutableList<(GamepadInputEvent) -> Boolean> = mutableListOf()
 
-    private val gamepadEventListeners: MutableList<(MotionEvent) -> Boolean> = mutableListOf()
-
-    fun addGamepadEventListener(listener: (MotionEvent) -> Boolean) {
+    fun addGamepadEventListener(listener: (GamepadInputEvent) -> Boolean) {
         gamepadEventListeners.add(listener)
     }
 
-    fun removeGamepadEventListener(listener: (MotionEvent) -> Boolean) {
+    fun removeGamepadEventListener(listener: (GamepadInputEvent) -> Boolean) {
         gamepadEventListeners.remove(listener)
     }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        if (event.source and InputDevice.SOURCE_GAMEPAD === InputDevice.SOURCE_GAMEPAD
-            || (event.source and InputDevice.SOURCE_JOYSTICK === InputDevice.SOURCE_JOYSTICK)
-        ) {
-            // Process the gamepad event here
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD
+            || event.source and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK) {
             for (listener in gamepadEventListeners) {
-                if (listener(event)) {
-                    return true // If any listener handles the event, consume it
+                if (listener(GamepadInputEvent(event, null))) {
+                    return true
                 }
             }
         } else {
-            Log.v(TAG, "[GENERIC]: $event")
-            return false // Return false to allow the event to be handled by other listeners
+            return false
         }
-        return super.dispatchGenericMotionEvent(event)
+        return super.onGenericMotionEvent(event)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.source and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD) {
+            for (listener in gamepadEventListeners) {
+                if (listener(GamepadInputEvent(null, event))) {
+                    return true
+                }
+            }
+        } else {
+            return false
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {

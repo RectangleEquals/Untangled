@@ -128,7 +128,7 @@ class BackgroundService : Service() {
         tcpClient?.connect()
     }
 
-    private fun handleGamepadEvent(event: MotionEvent): Boolean {
+    private fun handleGamepadEvent(event: GamepadInputEvent): Boolean {
         val controllerState = ControllerState(event)
         val serializedState = SerializedControllerState(controllerState).serializedData
         tcpClient?.sendData(serializedState)

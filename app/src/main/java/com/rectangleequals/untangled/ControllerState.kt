@@ -1,62 +1,59 @@
 package com.rectangleequals.untangled
 
-import android.os.Build
+import android.view.KeyEvent
 import android.view.MotionEvent
-import androidx.annotation.RequiresApi
-import com.google.gson.Gson
 import java.util.zip.Deflater
+import com.google.gson.*
+
+private val gson: Gson = Gson()
 
 data class ControllerState(
-    val event: MotionEvent
+    val event: GamepadInputEvent
 ) {
-    var eventTime: Long? = event.eventTime
-    var AxisHatX: Float? = event.getAxisValue(MotionEvent.AXIS_HAT_X)
-    var AxisHatY: Float? = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-    var AxisRX: Float? = event.getAxisValue(MotionEvent.AXIS_RX)
-    var AxisRY: Float? = event.getAxisValue(MotionEvent.AXIS_RY)
-    var AxisRZ: Float? = event.getAxisValue(MotionEvent.AXIS_RZ)
-    var AxisBrake: Float? = event.getAxisValue(MotionEvent.AXIS_BRAKE)
-    var AxisDistance: Float? = event.getAxisValue(MotionEvent.AXIS_DISTANCE)
-    var AxisGas: Float? = event.getAxisValue(MotionEvent.AXIS_GAS)
-    var AxisGeneric: List<Float?> = listOf(
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_1),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_2),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_2),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_3),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_4),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_5),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_6),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_7),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_8),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_9),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_10),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_11),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_12),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_13),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_14),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_15),
-        event.getAxisValue(MotionEvent.AXIS_GENERIC_16)
-    )
-    var AxisHScroll: Float? = event.getAxisValue(MotionEvent.AXIS_HSCROLL)
-    var AxisVScroll: Float? = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
-    var AxisLTrigger: Float? = event.getAxisValue(MotionEvent.AXIS_LTRIGGER)
-    var AxisRTrigger: Float? = event.getAxisValue(MotionEvent.AXIS_RTRIGGER)
-    var AxisOrientation: Float? = event.getAxisValue(MotionEvent.AXIS_ORIENTATION)
-    var AxisPressure: Float? = event.getAxisValue(MotionEvent.AXIS_PRESSURE)
-    var AxisRelativeX: Float? = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
-    var AxisRelativeY: Float? = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
-    var AxisRudder: Float? = event.getAxisValue(MotionEvent.AXIS_RUDDER)
-    var AxisX: Float? = event.getAxisValue(MotionEvent.AXIS_X)
-    var AxisY: Float? = event.getAxisValue(MotionEvent.AXIS_Y)
-    var AxisZ: Float? = event.getAxisValue(MotionEvent.AXIS_Z)
-    @RequiresApi(Build.VERSION_CODES.O)
-    var AxisScroll: Float? = event.getAxisValue(MotionEvent.AXIS_SCROLL)
-    var AxisSize: Float? = event.getAxisValue(MotionEvent.AXIS_SIZE)
-    var AxisThrottle: Float? = event.getAxisValue(MotionEvent.AXIS_THROTTLE)
-    var AxisTilt: Float? = event.getAxisValue(MotionEvent.AXIS_TILT)
-    var AxisToolMajor: Float? = event.getAxisValue(MotionEvent.AXIS_TOOL_MAJOR)
-    var AxisToolMinor: Float? = event.getAxisValue(MotionEvent.AXIS_TOOL_MINOR)
-    var AxisWheel: Float? = event.getAxisValue(MotionEvent.AXIS_WHEEL)
+    // General
+    var eventTime: Long? = event.motionEvent?.eventTime
+        set(value) {
+            field = value
+            if(value != null)
+                SharedData.lastEventTime = value
+        }
+        get() {
+            if (field == null && event.motionEvent == null) {
+                field = ++SharedData.lastEventTime
+            }
+            return field
+        }
+
+    // Axis
+    var AxisX: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_X)
+    var AxisY: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_Y)
+    var AxisZ: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_Z)
+    var AxisSize: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_SIZE)
+    var AxisOrientation: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_ORIENTATION)
+    var AxisRX: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_RX)
+    var AxisRY: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_RY)
+    var AxisRZ: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_RZ)
+    var AxisHatX: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_HAT_X)
+    var AxisHatY: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_HAT_Y)
+    var AxisLeftTrigger: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_LTRIGGER)
+    var AxisRightTrigger: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_RTRIGGER)
+    var AxisWheel: Float? = event.motionEvent?.getAxisValue(MotionEvent.AXIS_WHEEL)
+
+    // Buttons
+    val ButtonMenu: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_MENU
+    val ButtonA: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_A
+    val ButtonB: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_B
+    val ButtonC: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_C
+    val ButtonX: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_X
+    val ButtonY: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_Y
+    val ButtonZ: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_Z
+    val ButtonLeftShoulder: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_L1
+    val ButtonRightShoulder: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_R1
+    val ButtonLeftStick: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_THUMBL
+    val ButtonRightStick: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_THUMBR
+    val ButtonStart: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_START
+    val ButtonSelect: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_SELECT
+    val ButtonMode: Boolean? = event.keyEvent?.keyCode == KeyEvent.KEYCODE_BUTTON_MODE
 }
 
 data class SerializedControllerState(
@@ -69,8 +66,7 @@ data class SerializedControllerState(
     }
 
     private fun encodeAndCompress(controllerState: ControllerState): ByteArray {
-        val json: String = Gson().toJson(controllerState)
-        //val encodedBytes = Base64.encode(json.toByteArray(), Base64.DEFAULT)
+        val json: String = gson.toJson(controllerState)
         return compress(json.toByteArray())
     }
 
@@ -81,13 +77,5 @@ data class SerializedControllerState(
         val compressedData = ByteArray(data.size)
         val compressedSize = deflater.deflate(compressedData)
         return compressedData.copyOf(compressedSize)
-
-/*
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        val deflaterOutputStream = DeflaterOutputStream(byteArrayOutputStream)
-        deflaterOutputStream.write(data)
-        deflaterOutputStream.close()
-        return byteArrayOutputStream.toByteArray()
-*/
     }
 }

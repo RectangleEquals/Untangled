@@ -55,7 +55,7 @@ class BackgroundService : Service() {
         }
 
         // Retrieve the tcpClient from SharedData
-        controllerActivity = SharedData.activityContext
+        controllerActivity = SharedData.activityContext as ControllerActivity
         connectToServer()
 
         val layoutType: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

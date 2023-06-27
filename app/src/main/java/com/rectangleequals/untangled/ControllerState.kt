@@ -4,8 +4,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import java.util.zip.Deflater
 import com.google.gson.*
-import com.rectangleequals.untangled.ui.GroupContainer
-import com.rectangleequals.untangled.ui.GroupRow
 
 private val gson: Gson = Gson()
 
@@ -21,7 +19,7 @@ data class ControllerState(
             GroupContainer("General", 1, listOf(
                 GroupRow("Event Time:", General.eventTime.toString())
             )),
-            GroupContainer("Axis", 10, listOf(
+            GroupContainer("Axis", 8, listOf(
                 GroupRow("X:", Axis.X.toString()),
                 GroupRow("Y:", Axis.Y.toString()),
                 GroupRow("Z:", Axis.Z.toString()),

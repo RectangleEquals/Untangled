@@ -4,18 +4,18 @@
     <TableLayout
         android:id="@+id/GroupContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="3dp"
         android:background="@drawable/group_border">
 
         <!-- Label -->
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/GroupLabel"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:textSize="18sp"
@@ -23,11 +23,11 @@
         </TableRow>
 
         <!-- Container for Rows -->
-        <LinearLayout
+        <TableLayout
             android:id="@+id/GroupRowContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:stretchColumns="*" />
 
     </TableLayout>
 

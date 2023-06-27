@@ -19,7 +19,7 @@
         android:theme="@style/Theme.Untangled"
         tools:targetApi="31">
         <activity
-            android:name=".ControllerActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,0 +1,28 @@
+<!-- layout_group_row.xml -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TableRow
+        android:id="@+id/GroupRow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Label -->
+        <TextView
+            android:id="@+id/labelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- Data -->
+        <TextView
+            android:id="@+id/dataTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|fill"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp" />
+    </TableRow>
+
+</layout>

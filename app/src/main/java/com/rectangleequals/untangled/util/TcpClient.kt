@@ -1,11 +1,12 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.util
 
+import com.rectangleequals.untangled.view.MainActivity
 import java.io.IOException
 import java.io.OutputStream
 import java.net.Socket
 
 class TcpClient(
-    private val activity: ControllerActivity?,
+    private val activity: MainActivity?,
     private val serverIp: String,
     private val serverPort: Int
 ) {

@@ -1,4 +1,4 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.view
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -26,6 +26,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.rectangleequals.untangled.controller.BackgroundService
+import com.rectangleequals.untangled.R
+import com.rectangleequals.untangled.model.SharedData
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.*
@@ -34,7 +37,7 @@ private const val TAG: String = "ControllerActivity"
 private const val overlayPermissionRequestCode = 100
 
 @SuppressLint("MissingPermission")
-class ControllerActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private val bluetoothManager: BluetoothManager by lazy {
         getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
     }

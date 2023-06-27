@@ -1,4 +1,4 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.controller
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,6 +16,12 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.rectangleequals.untangled.R
+import com.rectangleequals.untangled.model.SharedData
+import com.rectangleequals.untangled.model.gamepad.*
+import com.rectangleequals.untangled.util.TcpClient
+import com.rectangleequals.untangled.view.MainActivity
+import com.rectangleequals.untangled.view.CustomOverlayLayout
 import java.net.URI
 
 
@@ -27,7 +33,7 @@ private const val CHANNEL_ID = "BackgroundServiceChannel"
 private const val CHANNEL_NAME = "Background Service"
 
 class BackgroundService : Service() {
-    private var controllerActivity: ControllerActivity? = null
+    private var mainActivity: MainActivity? = null
     private var tcpClient: TcpClient? = null
     private lateinit var windowManager: WindowManager
     private lateinit var overlayView: CustomOverlayLayout
@@ -55,7 +61,7 @@ class BackgroundService : Service() {
         }
 
         // Retrieve the tcpClient from SharedData
-        controllerActivity = SharedData.activityContext as ControllerActivity
+        mainActivity = SharedData.activityContext as MainActivity
         connectToServer()
 
         val layoutType: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -123,8 +129,8 @@ class BackgroundService : Service() {
     }
 
     private fun connectToServer() {
-        val uri = URI(controllerActivity?.urlText)
-        tcpClient = TcpClient(controllerActivity, uri.host, uri.port)
+        val uri = URI(mainActivity?.urlText)
+        tcpClient = TcpClient(mainActivity, uri.host, uri.port)
         tcpClient?.connect()
     }
 

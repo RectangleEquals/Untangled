@@ -1,4 +1,4 @@
-package com.rectangleequals.untangled;
+package com.rectangleequals.untangled.util;
 
 /*
  * NOTICE: modified since 2023 and later.

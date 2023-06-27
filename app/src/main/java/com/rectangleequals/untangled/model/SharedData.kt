@@ -1,12 +1,12 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.model
 
 import android.app.Activity
-
-data class GroupRow(val label: String, val data: String)
-data class GroupContainer(val label: String, val span: Int, val rows: List<GroupRow>)
+import com.rectangleequals.untangled.controller.BackgroundService
+import com.google.gson.*
 
 class SharedData {
     companion object {
+        val gson by lazy { Gson() }
         var activityContext: Activity? = null
         var backgroundService: BackgroundService? = null
         var lastEventTime: Long = 0

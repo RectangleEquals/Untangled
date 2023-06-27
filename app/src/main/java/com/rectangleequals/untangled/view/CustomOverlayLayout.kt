@@ -1,4 +1,4 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,6 +6,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.rectangleequals.untangled.model.gamepad.GamepadInputEvent
 
 class CustomOverlayLayout @JvmOverloads constructor(
     context: Context,

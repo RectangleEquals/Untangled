@@ -1,4 +1,4 @@
-package com.rectangleequals.untangled
+package com.rectangleequals.untangled.model.gamepad
 
 import android.view.KeyEvent
 import android.view.MotionEvent
